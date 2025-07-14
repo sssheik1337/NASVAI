@@ -1,0 +1,169 @@
+2025-07-15 03:04:01,142 - __main__ - INFO - Бот исследования запущен
+2025-07-15 03:04:01,606 - aiogram.dispatcher - INFO - Start polling
+2025-07-15 03:04:01,667 - handlers.common_handlers - INFO - Фоновая задача работает
+2025-07-15 03:04:01,988 - aiogram.dispatcher - INFO - Run polling for bot @tylertester_robot id=8133341294 - 'ТЕСТИРОВЩИК ТАЙЛЕР'
+2025-07-15 03:04:12,283 - aiogram.event - INFO - Update id=382629529 is handled. Duration 245 ms by bot id=8133341294
+2025-07-15 03:04:14,903 - aiogram.event - INFO - Update id=382629530 is handled. Duration 173 ms by bot id=8133341294
+2025-07-15 03:04:20,141 - aiogram.event - INFO - Update id=382629531 is handled. Duration 195 ms by bot id=8133341294
+2025-07-15 03:04:23,751 - aiogram.event - INFO - Update id=382629532 is handled. Duration 136 ms by bot id=8133341294
+2025-07-15 03:04:27,865 - aiogram.event - INFO - Update id=382629533 is handled. Duration 286 ms by bot id=8133341294
+2025-07-15 03:04:32,303 - aiogram.event - INFO - Update id=382629534 is handled. Duration 123 ms by bot id=8133341294
+2025-07-15 03:04:34,943 - aiogram.event - INFO - Update id=382629535 is handled. Duration 125 ms by bot id=8133341294
+2025-07-15 03:04:52,009 - aiogram.event - INFO - Update id=382629536 is handled. Duration 211 ms by bot id=8133341294
+2025-07-15 03:04:58,235 - aiogram.event - INFO - Update id=382629537 is handled. Duration 292 ms by bot id=8133341294
+2025-07-15 03:05:01,678 - handlers.common_handlers - INFO - Фоновая задача работает
+2025-07-15 03:05:04,163 - aiogram.event - INFO - Update id=382629538 is handled. Duration 89 ms by bot id=8133341294
+2025-07-15 03:05:07,039 - aiogram.event - INFO - Update id=382629539 is handled. Duration 701 ms by bot id=8133341294
+2025-07-15 03:05:12,375 - aiogram.event - INFO - Update id=382629540 is handled. Duration 102 ms by bot id=8133341294
+2025-07-15 03:05:14,634 - aiogram.event - INFO - Update id=382629541 is handled. Duration 276 ms by bot id=8133341294
+2025-07-15 03:05:20,252 - aiogram.event - INFO - Update id=382629542 is handled. Duration 265 ms by bot id=8133341294
+2025-07-15 03:05:22,370 - aiogram.event - INFO - Update id=382629543 is handled. Duration 315 ms by bot id=8133341294
+2025-07-15 03:05:26,340 - aiogram.event - INFO - Update id=382629544 is handled. Duration 337 ms by bot id=8133341294
+2025-07-15 03:05:29,550 - aiogram.event - INFO - Update id=382629545 is handled. Duration 287 ms by bot id=8133341294
+2025-07-15 03:05:35,692 - aiogram.event - INFO - Update id=382629546 is handled. Duration 155 ms by bot id=8133341294
+2025-07-15 03:05:37,978 - aiogram.event - INFO - Update id=382629547 is not handled. Duration 6 ms by bot id=8133341294
+2025-07-15 03:05:37,978 - aiogram.event - ERROR - Cause exception while process update id=382629547 by bot id=8133341294
+NameError: name 'logger' is not defined
+Traceback (most recent call last):
+  File "C:\Users\hrome\PycharmProjects\nas (1)\google_sheets.py", line 15, in save_to_google_sheets
+    creds = ServiceAccountCredentials.from_json_keyfile_name(GOOGLE_SHEETS_CREDENTIALS_FILE, scope)
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\oauth2client\service_account.py", line 219, in from_json_keyfile_name
+    with open(filename, 'r') as file_obj:
+         ~~~~^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: '../diaries-461014-26cf812fce8f.json'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\hrome\PycharmProjects\nas (1)\google_sheets.py", line 28, in save_to_google_sheets
+    logger.info(f"Ошибка авторизации в Google API: {e}")
+    ^^^^^^
+NameError: name 'logger' is not defined
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 309, in _process_update
+    response = await self.feed_update(bot, update, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 158, in feed_update
+    response = await self.update.wrap_outer_middleware(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<7 lines>...
+    )
+    ^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\middlewares\error.py", line 25, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\middlewares\user_context.py", line 56, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\fsm\middleware.py", line 42, in __call__
+    return await handler(event, data)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\event\telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\dispatcher.py", line 276, in _listen_update
+    return await self.propagate_event(update_type=update_type, event=event, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\router.py", line 146, in propagate_event
+    return await observer.wrap_outer_middleware(_wrapped, event=event, data=kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\router.py", line 141, in _wrapped
+    return await self._propagate_event(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        observer=observer, update_type=update_type, event=telegram_event, **data
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    )
+    ^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\router.py", line 166, in _propagate_event
+    response = await observer.trigger(event, **kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\event\telegram.py", line 121, in trigger
+    return await wrapped_inner(event, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\.venv\Lib\site-packages\aiogram\dispatcher\event\handler.py", line 43, in call
+    return await wrapped()
+           ^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\handlers\survey_handlers.py", line 216, in process_question_16
+    success = await save_to_google_sheets(message.chat.id)
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\hrome\PycharmProjects\nas (1)\google_sheets.py", line 53, in save_to_google_sheets
+    logger.info(f"Общая ошибка при сохранении в Google Sheets: {e}")
+    ^^^^^^
+NameError: name 'logger' is not defined
+2025-07-15 03:06:01,680 - handlers.common_handlers - INFO - Фоновая задача работает
+2025-07-15 03:07:01,702 - handlers.common_handlers - INFO - Фоновая задача работает
+2025-07-15 03:08:01,716 - handlers.common_handlers - INFO - Фоновая задача работает
+2025-07-15 03:08:39,793 - aiogram.dispatcher - INFO - Polling stopped
+2025-07-15 03:08:40,045 - __main__ - INFO - Бот остановлен
+2025-07-15 03:08:40,046 - aiogram.dispatcher - INFO - Polling stopped for bot @tylertester_robot id=8133341294 - 'ТЕСТИРОВЩИК ТАЙЛЕР'
+2025-07-15 03:08:46,085 - __main__ - INFO - Бот исследования запущен
+2025-07-15 03:08:46,593 - aiogram.dispatcher - INFO - Start polling
+2025-07-15 03:08:46,648 - handlers.common_handlers - INFO - Фоновая задача работает
+2025-07-15 03:08:46,971 - aiogram.dispatcher - INFO - Run polling for bot @tylertester_robot id=8133341294 - 'ТЕСТИРОВЩИК ТАЙЛЕР'
+2025-07-15 03:09:02,143 - aiogram.event - INFO - Update id=382629548 is handled. Duration 344 ms by bot id=8133341294
+2025-07-15 03:09:03,691 - aiogram.event - INFO - Update id=382629549 is handled. Duration 226 ms by bot id=8133341294
+2025-07-15 03:09:06,779 - aiogram.event - INFO - Update id=382629550 is handled. Duration 114 ms by bot id=8133341294
+2025-07-15 03:09:08,405 - aiogram.event - INFO - Update id=382629551 is handled. Duration 121 ms by bot id=8133341294
+2025-07-15 03:09:10,899 - aiogram.event - INFO - Update id=382629552 is handled. Duration 427 ms by bot id=8133341294
+2025-07-15 03:09:14,224 - aiogram.event - INFO - Update id=382629553 is handled. Duration 111 ms by bot id=8133341294
+2025-07-15 03:09:15,379 - aiogram.event - INFO - Update id=382629554 is handled. Duration 89 ms by bot id=8133341294
+2025-07-15 03:09:17,795 - aiogram.event - INFO - Update id=382629555 is handled. Duration 117 ms by bot id=8133341294
+2025-07-15 03:09:20,406 - aiogram.event - INFO - Update id=382629556 is handled. Duration 282 ms by bot id=8133341294
+2025-07-15 03:09:25,071 - aiogram.event - INFO - Update id=382629557 is handled. Duration 123 ms by bot id=8133341294
+2025-07-15 03:09:27,369 - aiogram.event - INFO - Update id=382629558 is handled. Duration 277 ms by bot id=8133341294
+2025-07-15 03:09:29,556 - aiogram.event - INFO - Update id=382629559 is handled. Duration 317 ms by bot id=8133341294
+2025-07-15 03:09:30,948 - aiogram.event - INFO - Update id=382629560 is handled. Duration 293 ms by bot id=8133341294
+2025-07-15 03:09:32,141 - aiogram.event - INFO - Update id=382629561 is handled. Duration 286 ms by bot id=8133341294
+2025-07-15 03:09:33,754 - aiogram.event - INFO - Update id=382629562 is handled. Duration 286 ms by bot id=8133341294
+2025-07-15 03:09:37,687 - aiogram.event - INFO - Update id=382629563 is handled. Duration 146 ms by bot id=8133341294
+2025-07-15 03:09:39,342 - aiogram.event - INFO - Update id=382629564 is handled. Duration 98 ms by bot id=8133341294
+2025-07-15 03:09:40,838 - aiogram.event - INFO - Update id=382629565 is handled. Duration 143 ms by bot id=8133341294
+2025-07-15 03:09:43,983 - aiogram.event - INFO - Update id=382629566 is handled. Duration 442 ms by bot id=8133341294
+2025-07-15 03:09:46,200 - aiogram.event - INFO - Update id=382629567 is handled. Duration 128 ms by bot id=8133341294
+2025-07-15 03:09:46,662 - handlers.common_handlers - INFO - Фоновая задача работает
+2025-07-15 03:09:49,236 - google_sheets - ERROR - Общая ошибка при сохранении в Google Sheets: name 'sqlite3' is not defined
+2025-07-15 03:09:49,350 - aiogram.event - INFO - Update id=382629568 is handled. Duration 2391 ms by bot id=8133341294
+2025-07-15 03:10:46,675 - handlers.common_handlers - INFO - Фоновая задача работает
+2025-07-15 03:11:46,677 - handlers.common_handlers - INFO - Фоновая задача работает
+2025-07-15 03:11:51,823 - aiogram.dispatcher - INFO - Polling stopped
+2025-07-15 03:11:52,081 - __main__ - INFO - Бот остановлен
+2025-07-15 03:11:52,082 - aiogram.dispatcher - INFO - Polling stopped for bot @tylertester_robot id=8133341294 - 'ТЕСТИРОВЩИК ТАЙЛЕР'
+2025-07-15 03:11:57,844 - __main__ - INFO - Бот исследования запущен
+2025-07-15 03:11:58,344 - aiogram.dispatcher - INFO - Start polling
+2025-07-15 03:11:58,419 - handlers.common_handlers - INFO - Фоновая задача работает
+2025-07-15 03:11:58,721 - aiogram.dispatcher - INFO - Run polling for bot @tylertester_robot id=8133341294 - 'ТЕСТИРОВЩИК ТАЙЛЕР'
+2025-07-15 03:12:02,873 - aiogram.event - INFO - Update id=382629569 is handled. Duration 233 ms by bot id=8133341294
+2025-07-15 03:12:04,033 - aiogram.event - INFO - Update id=382629570 is handled. Duration 177 ms by bot id=8133341294
+2025-07-15 03:12:06,544 - aiogram.event - INFO - Update id=382629571 is handled. Duration 120 ms by bot id=8133341294
+2025-07-15 03:12:07,447 - aiogram.event - INFO - Update id=382629572 is handled. Duration 123 ms by bot id=8133341294
+2025-07-15 03:12:09,407 - aiogram.event - INFO - Update id=382629573 is handled. Duration 272 ms by bot id=8133341294
+2025-07-15 03:12:11,367 - aiogram.event - INFO - Update id=382629574 is handled. Duration 93 ms by bot id=8133341294
+2025-07-15 03:12:12,614 - aiogram.event - INFO - Update id=382629575 is handled. Duration 92 ms by bot id=8133341294
+2025-07-15 03:12:13,630 - aiogram.event - INFO - Update id=382629576 is handled. Duration 93 ms by bot id=8133341294
+2025-07-15 03:12:15,499 - aiogram.event - INFO - Update id=382629577 is handled. Duration 260 ms by bot id=8133341294
+2025-07-15 03:12:17,401 - aiogram.event - INFO - Update id=382629578 is handled. Duration 102 ms by bot id=8133341294
+2025-07-15 03:12:19,664 - aiogram.event - INFO - Update id=382629579 is handled. Duration 536 ms by bot id=8133341294
+2025-07-15 03:12:20,918 - aiogram.event - INFO - Update id=382629580 is handled. Duration 293 ms by bot id=8133341294
+2025-07-15 03:12:22,120 - aiogram.event - INFO - Update id=382629581 is handled. Duration 282 ms by bot id=8133341294
+2025-07-15 03:12:23,841 - aiogram.event - INFO - Update id=382629582 is handled. Duration 286 ms by bot id=8133341294
+2025-07-15 03:12:25,272 - aiogram.event - INFO - Update id=382629583 is handled. Duration 316 ms by bot id=8133341294
+2025-07-15 03:12:27,064 - aiogram.event - INFO - Update id=382629584 is handled. Duration 310 ms by bot id=8133341294
+2025-07-15 03:12:29,439 - aiogram.event - INFO - Update id=382629585 is handled. Duration 97 ms by bot id=8133341294
+2025-07-15 03:12:33,095 - google_sheets - INFO - Данные успешно сохранены в Google Sheets
+2025-07-15 03:12:33,303 - aiogram.event - INFO - Update id=382629586 is handled. Duration 3034 ms by bot id=8133341294
+2025-07-15 03:12:43,334 - aiogram.event - INFO - Update id=382629587 is handled. Duration 267 ms by bot id=8133341294
+2025-07-15 03:12:44,711 - aiogram.event - INFO - Update id=382629588 is handled. Duration 261 ms by bot id=8133341294
+2025-07-15 03:12:46,250 - aiogram.event - INFO - Update id=382629589 is handled. Duration 231 ms by bot id=8133341294
+2025-07-15 03:12:50,406 - aiogram.event - INFO - Update id=382629590 is handled. Duration 205 ms by bot id=8133341294
+2025-07-15 03:12:52,779 - aiogram.event - INFO - Update id=382629591 is handled. Duration 208 ms by bot id=8133341294
+2025-07-15 03:12:56,312 - aiogram.event - INFO - Update id=382629592 is handled. Duration 191 ms by bot id=8133341294
+2025-07-15 03:12:58,424 - handlers.common_handlers - INFO - Фоновая задача работает
+2025-07-15 03:13:08,267 - aiogram.dispatcher - INFO - Polling stopped
+2025-07-15 03:13:08,521 - __main__ - INFO - Бот остановлен
+2025-07-15 03:13:08,521 - aiogram.dispatcher - INFO - Polling stopped for bot @tylertester_robot id=8133341294 - 'ТЕСТИРОВЩИК ТАЙЛЕР'
