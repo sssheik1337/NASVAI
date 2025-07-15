@@ -1,13 +1,13 @@
+import logging
 from aiogram import Dispatcher, types, F, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.filters import Command, StateFilter
 from states import DiaryStates, SurveyStates
-from keyboards import get_location_buttons, get_companions_buttons, get_yes_no_keyboard
+from keyboards import get_childcare_buttons, get_same_location_buttons, get_same_companions_buttons
 from datetime import datetime, timedelta
 import sqlite3
 import pytz
 from config import GROUP_ID
-import logging
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +30,11 @@ async def process_wake_up_time(message: types.Message, state: FSMContext):
             current_period_start=current_period_start.strftime("%H:%M"),
             current_period_end=current_period_end.strftime("%H:%M"),
             wake_up_time=wake_up_time.strftime("%H:%M"),
-            diary_start_time=now.strftime("%Y-%m-%d %H:%M:%S")
+            diary_start_time=now.strftime("%Y-%m-%d %H:%M:%S"),
+            previous_location=None,
+            previous_companions=[],
+            previous_childcare=None,
+            entry_count=0
         )
         await ask_activity_question(message, state)
     except ValueError:
@@ -38,9 +42,12 @@ async def process_wake_up_time(message: types.Message, state: FSMContext):
 
 async def ask_activity_question(message: types.Message, state: FSMContext):
     data = await state.get_data()
+    entry_count = data.get('entry_count', 0) + 1
+    await state.update_data(entry_count=entry_count)
     await message.answer(
         f"📝 Период времени: {data['current_period_start']}-{data['current_period_end']}\n\n"
-        "1. Чем вы занимались в это время? (Опишите все ваши действия, включая параллельные)"
+        f"1. Чем вы занимались с {data['current_period_start']} до {data['current_period_end']}? "
+        "(Опишите все ваши действия, включая параллельные и короткие занятия)"
     )
     await state.set_state(DiaryStates.RECORDING_ACTIVITY)
 
@@ -50,114 +57,138 @@ async def process_activity(message: types.Message, state: FSMContext):
         await finish_diary(message, state)
         return
     await state.update_data(current_activity=user_answer)
-    await message.answer("2. Где вы находились в это время?", reply_markup=get_location_buttons())
-    await state.set_state(DiaryStates.RECORDING_LOCATION)
+    data = await state.get_data()
+    if data.get('entry_count', 0) == 1:
+        await message.answer("2. Где вы были в это время?")
+        await state.set_state(DiaryStates.RECORDING_LOCATION)
+    else:
+        await message.answer("2. Где вы были в это время?", reply_markup=get_same_location_buttons())
+        await state.set_state(DiaryStates.RECORDING_LOCATION)
 
 async def process_location(callback: types.CallbackQuery, state: FSMContext):
-    location_map = {
-        "loc_home": "У себя дома",
-        "loc_other_home": "У кого-то другого дома",
-        "loc_work": "На работе",
-        "loc_transport": "В пути",
-        "loc_outside": "На улице",
-        "loc_hospital": "В больнице",
-        "loc_shop": "В магазине",
-        "loc_other": "Другое"
-    }
-    location = location_map[callback.data]
-    if callback.data == "loc_other":
-        await callback.message.answer("Пожалуйста, укажите, где вы находились:")
-        await state.set_state(DiaryStates.RECORDING_LOCATION_OTHER)
-    else:
-        await state.update_data(current_location=location)
-        await callback.message.answer("3. С кем вы были в это время?", reply_markup=get_companions_buttons())
+    data = await state.get_data()
+    if callback.data == "loc_same":
+        await callback.message.answer("Вы выбрали вариант: Я была там же")
+        await state.update_data(current_location=data.get('previous_location', ''))
+        await callback.message.answer("3. С кем вы были в это время?", reply_markup=get_same_companions_buttons())
         await state.set_state(DiaryStates.RECORDING_COMPANIONS)
+    elif callback.data == "loc_different":
+        await callback.message.answer("Напишите, пожалуйста, где вы были:")
+        await state.set_state(DiaryStates.RECORDING_LOCATION_OTHER)
     await callback.message.edit_reply_markup(reply_markup=None)
 
+async def process_location_text(message: types.Message, state: FSMContext):
+    location = message.text.strip()
+    await state.update_data(current_location=location, previous_location=location)
+    data = await state.get_data()
+    if data.get('entry_count', 0) == 1:
+        await message.answer("3. С кем вы были в это время?")
+        await state.set_state(DiaryStates.RECORDING_COMPANIONS)
+    else:
+        await message.answer("3. С кем вы были в это время?", reply_markup=get_same_companions_buttons())
+        await state.set_state(DiaryStates.RECORDING_COMPANIONS)
+
 async def process_location_other(message: types.Message, state: FSMContext):
-    await state.update_data(current_location=f"Другое: {message.text.strip()}")
-    await message.answer("3. С кем вы были в это время?", reply_markup=get_companions_buttons())
+    location = message.text.strip()
+    await state.update_data(current_location=location, previous_location=location)
+    await message.answer("3. С кем вы были в это время?", reply_markup=get_same_companions_buttons())
     await state.set_state(DiaryStates.RECORDING_COMPANIONS)
 
 async def process_companions(callback: types.CallbackQuery, state: FSMContext):
-    companion_map = {
-        "comp_alone": "Я была одна",
-        "comp_husband": "Муж",
-        "comp_child": "Ребенок",
-        "comp_parents": "Родители/родители мужа",
-        "comp_relatives": "Другие родственники",
-        "comp_friends": "Друзья",
-        "comp_colleagues": "Коллеги",
-        "comp_others": "Другие люди"
-    }
-    companion = companion_map[callback.data]
-    if callback.data == "comp_others":
-        await callback.message.answer("Пожалуйста, укажите, с кем вы были:")
+    data = await state.get_data()
+    if callback.data == "comp_same":
+        await callback.message.answer("Вы выбрали вариант: Я была с теми же людьми")
+        await state.update_data(current_companions=data.get('previous_companions', []))
+        if data.get('entry_count', 0) == 1:
+            await callback.message.answer("4. Кто присматривал за вашим ребенком в это время?")
+        else:
+            await callback.message.answer("4. Кто присматривал за вашим ребенком в это время?", reply_markup=get_childcare_buttons())
+        await state.set_state(DiaryStates.RECORDING_CHILDCARE)
+    elif callback.data == "comp_different":
+        await callback.message.answer("Напишите, пожалуйста, с кем вы были:")
         await state.set_state(DiaryStates.RECORDING_COMPANIONS_OTHER)
-    else:
-        data = await state.get_data()
-        current_companions = data.get('current_companions', [])
-        current_companions.append(companion)
-        await state.update_data(current_companions=current_companions)
-        await callback.message.answer(
-            f"Вы выбрали: {', '.join(current_companions)}\nХотите добавить еще кого-то?",
-            reply_markup=get_yes_no_keyboard()
-        )
-        await state.set_state(DiaryStates.ASKING_ADD_COMPANION)
     await callback.message.edit_reply_markup(reply_markup=None)
+
+async def process_companions_text(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    current_companions = data.get('current_companions', [])
+    current_companions.append(message.text.strip())
+    await state.update_data(current_companions=current_companions, previous_companions=current_companions)
+    if data.get('entry_count', 0) == 1:
+        await message.answer("4. Кто присматривал за вашим ребенком в это время?")
+    else:
+        await message.answer("4. Кто присматривал за вашим ребенком в это время?", reply_markup=get_childcare_buttons())
+    await state.set_state(DiaryStates.RECORDING_CHILDCARE)
 
 async def process_companions_other(message: types.Message, state: FSMContext):
     data = await state.get_data()
     current_companions = data.get('current_companions', [])
-    current_companions.append(f"Другие: {message.text.strip()}")
-    await state.update_data(current_companions=current_companions)
-    await message.answer(
-        f"Вы выбрали: {', '.join(current_companions)}\nХотите добавить еще кого-то?",
-        reply_markup=get_yes_no_keyboard()
-    )
-    await state.set_state(DiaryStates.ASKING_ADD_COMPANION)
-
-async def process_add_companion(callback: types.CallbackQuery, state: FSMContext):
-    if callback.data == "yes":
-        await callback.message.answer("Кого еще добавить?", reply_markup=get_companions_buttons())
-        await state.set_state(DiaryStates.RECORDING_COMPANIONS)
+    current_companions.append(message.text.strip())
+    await state.update_data(current_companions=current_companions, previous_companions=current_companions)
+    if data.get('entry_count', 0) == 1:
+        await message.answer("4. Кто присматривал за вашим ребенком в это время?")
     else:
-        data = await state.get_data()
-        current_companions = data.get('current_companions', [])
-        companions_str = ", ".join(current_companions)
-        now = datetime.now(pytz.timezone('Europe/Moscow'))
-        now_full = now.strftime("%Y-%m-%d %H:%M:%S")
-        with sqlite3.connect("research_bot.db") as conn:
-            conn.execute('''
-                INSERT INTO diary_entries 
-                (chat_id, username, entry_date, timestamp, time_period, activity, location, companions)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?)''',
-                         (
-                             callback.message.chat.id,
-                             callback.from_user.username,
-                             now.strftime('%Y-%m-%d'),
-                             now_full,
-                             f"{data['current_period_start']}-{data['current_period_end']}",
-                             data.get('current_activity', ''),
-                             data.get('current_location', ''),
-                             companions_str
-                         ))
-        current_end = datetime.strptime(data['current_period_end'], "%H:%M").time()
-        next_start = current_end
-        next_end = (datetime.combine(now.date(), next_start) + timedelta(minutes=20)).time()
-        await state.update_data(
-            current_period_start=next_start.strftime("%H:%M"),
-            current_period_end=next_end.strftime("%H:%M"),
-            current_companions=[]
-        )
-        await ask_activity_question(callback.message, state)
+        await message.answer("4. Кто присматривал за вашим ребенком в это время?", reply_markup=get_childcare_buttons())
+    await state.set_state(DiaryStates.RECORDING_CHILDCARE)
+
+async def process_childcare(callback: types.CallbackQuery, state: FSMContext):
+    data = await state.get_data()
+    if callback.data == "childcare_same":
+        await callback.message.answer("Вы выбрали вариант: Ситуация не менялась")
+        await state.update_data(current_childcare=data.get('previous_childcare', ''))
+        await save_diary_entry(callback.message, state)
+    elif callback.data == "childcare_different":
+        await callback.message.answer("Напишите, пожалуйста, кто присматривал за вашим ребенком:")
+        await state.set_state(DiaryStates.RECORDING_CHILDCARE_OTHER)
     await callback.message.edit_reply_markup(reply_markup=None)
+
+async def process_childcare_text(message: types.Message, state: FSMContext):
+    childcare = message.text.strip()
+    await state.update_data(current_childcare=childcare, previous_childcare=childcare)
+    await save_diary_entry(message, state)
+
+async def process_childcare_other(message: types.Message, state: FSMContext):
+    childcare = message.text.strip()
+    await state.update_data(current_childcare=childcare, previous_childcare=childcare)
+    await save_diary_entry(message, state)
+
+async def save_diary_entry(message: types.Message, state: FSMContext):
+    data = await state.get_data()
+    current_companions = data.get('current_companions', [])
+    companions_str = ", ".join(current_companions)
+    now = datetime.now(pytz.timezone('Europe/Moscow'))
+    now_full = now.strftime("%Y-%m-%d %H:%M:%S")
+    with sqlite3.connect("research_bot.db") as conn:
+        conn.execute('''
+            INSERT INTO diary_entries 
+            (chat_id, username, entry_date, timestamp, time_period, activity, location, companions, childcare)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''',
+                     (
+                         message.chat.id,
+                         message.from_user.username,
+                         now.strftime('%Y-%m-%d'),
+                         now_full,
+                         f"{data['current_period_start']}-{data['current_period_end']}",
+                         data.get('current_activity', ''),
+                         data.get('current_location', ''),
+                         companions_str,
+                         data.get('current_childcare', '')
+                     ))
+    current_end = datetime.strptime(data['current_period_end'], "%H:%M").time()
+    next_start = current_end
+    next_end = (datetime.combine(now.date(), next_start) + timedelta(minutes=20)).time()
+    await state.update_data(
+        current_period_start=next_start.strftime("%H:%M"),
+        current_period_end=next_end.strftime("%H:%M"),
+        current_companions=[]
+    )
+    await ask_activity_question(message, state)
 
 async def finish_diary(message: types.Message, state: FSMContext):
     with sqlite3.connect("research_bot.db") as conn:
         cursor = conn.cursor()
         cursor.execute('''
-            SELECT time_period, activity, location, companions, timestamp, username 
+            SELECT time_period, activity, location, companions, childcare, timestamp, username 
             FROM diary_entries 
             WHERE chat_id = ? 
             ORDER BY timestamp''',
@@ -172,11 +203,11 @@ async def finish_diary(message: types.Message, state: FSMContext):
         conn.commit()
     report = []
     for entry in entries:
-        time_period, activity, location, companions, timestamp, username = entry
+        time_period, activity, location, companions, childcare, timestamp, username = entry
         report_line = (
             f"В промежуток [{time_period}] пользователь [{username or 'нет username'} - {user_name}] "
-            f"делал [{activity}] в локации [{location}] с компанией [{companions}]. "
-            f"Запись оставил в [{timestamp}]."
+            f"делал [{activity}] в локации [{location}] с компанией [{companions}] "
+            f"присмотр за ребенком: [{childcare}]. Запись оставил в [{timestamp}]."
         )
         report.append(report_line)
     full_report = "\n".join(report)
@@ -188,27 +219,26 @@ async def finish_diary(message: types.Message, state: FSMContext):
         from google_sheets import init_google_sheets
         worksheet = init_google_sheets()
         username_to_find = f"@{message.from_user.username}" if message.from_user.username else None
-        if new_count == 2:
-            await state.set_data({'worksheet': worksheet, 'username_to_find': username_to_find})
-            await message.answer(
-                "Далее, я попрошу вас ответить на несколько вопросов об опыте заполнения дневника. "
-                "Вы можете отвечать в свободной форме.\n\n"
-                "Первый вопрос: отражает ли ваш дневник привычный для вас распорядок, или эти дни "
-                "чем-то выделялись из вашей обычной рутины? Расскажите, пожалуйста, поподробней."
-            )
-            await state.set_state(DiaryStates.FEEDBACK_QUESTION_1)
-            return
+        if username_to_find:
+            try:
+                cell = worksheet.find(username_to_find)
+                diary_column = 22 if new_count == 1 else 23  # Столбец V (22) для дневника 1, W (23) для дневника 2
+                worksheet.update_cell(cell.row, diary_column, full_report)
+                logger.info(f"Отчет дневника {new_count} успешно добавлен в строку {cell.row}, столбец {diary_column}")
+                if new_count == 2:
+                    await state.set_data({'worksheet': worksheet, 'username_to_find': username_to_find})
+                    await message.answer(
+                        "Далее, я попрошу вас ответить на несколько вопросов об опыте заполнения дневника. "
+                        "Вы можете отвечать в свободной форме (написать текстом или записать голосовое сообщение).\n\n"
+                        "Первый вопрос: отражает ли ваш дневник привычный для вас распорядок, или эти дни "
+                        "чем-то выделялись из вашей обычной рутины? Расскажите, пожалуйста, поподробней."
+                    )
+                    await state.set_state(DiaryStates.FEEDBACK_QUESTION_1)
+                    return
+            except Exception as e:
+                logger.error(f"Ошибка при сохранении отчета дневника {new_count} в Google Sheets: {e}")
         else:
-            if username_to_find:
-                try:
-                    cell = worksheet.find(username_to_find)
-                    last_col = len(worksheet.row_values(cell.row))
-                    worksheet.update_cell(cell.row, last_col + 1, full_report)
-                    print(f"Отчет успешно добавлен в строку {cell.row}")
-                except Exception as e:
-                    logger.error(f"Ошибка при сохранении в Google Sheets: {e}")
-            else:
-                print("Username не найден, невозможно добавить отчет")
+            logger.error("Username не найден, невозможно добавить отчет")
     except Exception as e:
         logger.error(f"Ошибка при сохранении в Google Sheets: {e}")
     with sqlite3.connect("research_bot.db") as conn:
@@ -223,14 +253,20 @@ def register_handlers(dp: Dispatcher, bot: Bot):
     dp.message.register(cmd_start_diary, Command("start_diary"))
     dp.message.register(process_wake_up_time, DiaryStates.WAITING_FOR_WAKE_UP)
     dp.message.register(process_activity, DiaryStates.RECORDING_ACTIVITY)
-    dp.callback_query.register(process_location, F.data.startswith("loc_"), DiaryStates.RECORDING_LOCATION)
+    dp.callback_query.register(process_location, F.data.in_(["loc_same", "loc_different"]), DiaryStates.RECORDING_LOCATION)
+    dp.message.register(process_location_text, DiaryStates.RECORDING_LOCATION)
     dp.message.register(process_location_other, DiaryStates.RECORDING_LOCATION_OTHER)
-    dp.callback_query.register(process_companions, F.data.startswith("comp_"), DiaryStates.RECORDING_COMPANIONS)
+    dp.callback_query.register(process_companions, F.data.in_(["comp_same", "comp_different"]), DiaryStates.RECORDING_COMPANIONS)
+    dp.message.register(process_companions_text, DiaryStates.RECORDING_COMPANIONS)
     dp.message.register(process_companions_other, DiaryStates.RECORDING_COMPANIONS_OTHER)
-    dp.callback_query.register(process_add_companion, F.data.in_(["yes", "no"]), DiaryStates.ASKING_ADD_COMPANION)
+    dp.callback_query.register(process_childcare, F.data.in_(["childcare_same", "childcare_different"]), DiaryStates.RECORDING_CHILDCARE)
+    dp.message.register(process_childcare_text, DiaryStates.RECORDING_CHILDCARE)
+    dp.message.register(process_childcare_other, DiaryStates.RECORDING_CHILDCARE_OTHER)
     dp.message.register(finish_diary, F.text.lower() == "ночной сон", StateFilter(
         DiaryStates.WAITING_FOR_WAKE_UP,
         DiaryStates.RECORDING_ACTIVITY,
         DiaryStates.RECORDING_LOCATION,
-        DiaryStates.RECORDING_COMPANIONS
+        DiaryStates.RECORDING_COMPANIONS,
+        DiaryStates.RECORDING_CHILDCARE,
+        DiaryStates.RECORDING_CHILDCARE_OTHER
     ))

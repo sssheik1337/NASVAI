@@ -1,8 +1,8 @@
 import logging
+import sqlite3
 import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from config import GOOGLE_SHEETS_CREDENTIALS_FILE, SPREADSHEET_ID
-import sqlite3
 from datetime import datetime
 
 logger = logging.getLogger(__name__)
@@ -58,7 +58,7 @@ async def save_to_google_sheets(chat_id: int):
 
         try:
             worksheet.append_row(row_data)
-            logger.info("Данные успешно сохранены в Google Sheets")
+            logger.info("Данные анкеты успешно сохранены в Google Sheets")
             return True
         except Exception as e:
             logger.error(f"Ошибка при добавлении строки: {e}")

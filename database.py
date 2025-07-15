@@ -1,7 +1,8 @@
-import sqlite3
 import logging
+import sqlite3
 
 logger = logging.getLogger(__name__)
+
 DB_FILE = "research_bot.db"
 
 def create_tables():
@@ -42,6 +43,7 @@ def create_tables():
                 activity TEXT,
                 location TEXT,
                 companions TEXT,
+                childcare TEXT,
                 FOREIGN KEY(chat_id) REFERENCES participants(chat_id)
             )''')
 
@@ -54,5 +56,6 @@ async def save_answer(chat_id: int, question_num: int, answer: str):
                 VALUES (?, ?, ?)''',
                 (chat_id, question_num, answer)
             )
+            logger.info(f"Ответ на вопрос {question_num} сохранен для chat_id {chat_id}")
     except Exception as e:
-        logger.error(f"Ошибка сохранения ответа: {e}")
+        logger.error(f"Ошибка сохранения ответа на вопрос {question_num}: {e}")

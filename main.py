@@ -1,6 +1,7 @@
 import asyncio
 import logging
 from aiogram import Bot, Dispatcher
+from aiogram.types import BotCommand
 from config import BOT_TOKEN
 from database import create_tables
 from handlers.survey_handlers import register_handlers as register_survey_handlers
@@ -23,6 +24,15 @@ async def main():
     logger.info("Бот исследования запущен")
     bot = Bot(token=BOT_TOKEN)
     dp = Dispatcher()
+
+    # Настройка меню команд
+    commands = [
+        BotCommand(command="/start", description="Начать анкету"),
+        BotCommand(command="/start_diary", description="Запись в дневник"),
+        BotCommand(command="/help", description="Краткая инструкция по дневнику")
+    ]
+    await bot.set_my_commands(commands)
+
     create_tables()
     register_survey_handlers(dp)
     register_diary_handlers(dp, bot)
@@ -35,6 +45,7 @@ async def main():
         logger.error(f"Ошибка при запуске бота: {e}")
     finally:
         logger.info("Бот остановлен")
+        await bot.session.close()
 
 if __name__ == "__main__":
     asyncio.run(main())
